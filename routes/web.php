@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\Auth\CustomLoginController;
+use App\Http\Controllers\Auth\CustomRegisterController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -35,12 +37,24 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/items', [ItemController::class, 'index'])->name('items.index');
-    Route::get('/items/create', [ItemController::class, 'create'])->name('items.create');
-    Route::post('/items', [ItemController::class, 'store'])->name('items.store');
-    Route::get('/items/{item}/edit', [ItemController::class, 'edit'])->name('items.edit');
-    Route::put('/items/{item}', [ItemController::class, 'update'])->name('items.update');
-    Route::delete('/items/{item}', [ItemController::class, 'destroy'])->name('items.destroy');
+    Route::middleware(['role:admin|superadmin'])->group(function () {
+            Route::get('/items', [ItemController::class, 'index'])->name('items.index');
+            Route::get('/items/create', [ItemController::class, 'create'])->name('items.create');
+            Route::post('/items', [ItemController::class, 'store'])->name('items.store');
+            Route::get('/items/{item}/edit', [ItemController::class, 'edit'])->name('items.edit');
+            Route::put('/items/{item}', [ItemController::class, 'update'])->name('items.update');
+            Route::delete('/items/{item}', [ItemController::class, 'destroy'])->name('items.destroy');
+    });
+
+    Route::middleware(['auth', 'role:admin|superadmin'])
+        ->prefix('admin')
+        ->group(function () {
+
+            Route::get('/dashboard', function () {
+                return "Admin Dashboard";
+            });
+
+    });
 
 });
 
@@ -53,5 +67,16 @@ Route::get('/test', function () {
         'name' => 'Gaurav'
     ]);
 });
+
+
+// custom login,register and logout routes
+
+Route::get('/custom-login', [CustomLoginController::class, 'showLogin'])->name('custom.login');
+Route::post('/custom-login', [CustomLoginController::class, 'login']);
+
+Route::get('/custom-register', fn() => Inertia::render('Auth/CustomRegister'));
+Route::post('/custom-register', [CustomRegisterController::class, 'register']);
+
+Route::post('/logout', [CustomLoginController::class, 'logout'])->middleware('auth');
 
 require __DIR__.'/auth.php';
