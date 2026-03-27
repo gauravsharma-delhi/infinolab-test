@@ -4,6 +4,11 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\Auth\CustomLoginController;
 use App\Http\Controllers\Auth\CustomRegisterController;
+
+use App\Http\Controllers\FrontendController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\EnquiryController;
+
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -19,14 +24,14 @@ use Inertia\Inertia;
 |
 */
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+// Route::get('/', function () {
+//     return Inertia::render('Welcome', [
+//         'canLogin' => Route::has('login'),
+//         'canRegister' => Route::has('register'),
+//         'laravelVersion' => Application::VERSION,
+//         'phpVersion' => PHP_VERSION,
+//     ]);
+// });
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
@@ -77,6 +82,31 @@ Route::post('/custom-login', [CustomLoginController::class, 'login']);
 Route::get('/custom-register', fn() => Inertia::render('Auth/CustomRegister'));
 Route::post('/custom-register', [CustomRegisterController::class, 'register']);
 
-Route::post('/logout', [CustomLoginController::class, 'logout'])->middleware('auth');
+Route::get('/logout', [CustomLoginController::class, 'logout'])->middleware('auth');
+
+
+
+
+
+// FRONTEND
+Route::get('/', [FrontendController::class, 'home']);
+Route::get('/contact', [FrontendController::class, 'contact']);
+Route::post('/contact-submit', [EnquiryController::class, 'store']);
+
+// ADMIN
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+
+    Route::get('/dashboard', [AdminController::class, 'dashboard']);
+
+    Route::get('/contact-settings', [AdminController::class, 'contactSettings']);
+    Route::post('/contact-settings', [AdminController::class, 'updateContact']);
+
+    Route::get('/enquiries', [AdminController::class, 'enquiries']);
+});
+
+
+
+
+
 
 require __DIR__.'/auth.php';
